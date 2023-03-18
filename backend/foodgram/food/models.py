@@ -1,17 +1,20 @@
 from django.db import models
 from users.models import User
+from django.core.validators import RegexValidator, MinValueValidator
 
 class Tag(models.Model):
     name = models.CharField(
         verbose_name='Название',
         max_length=100,
-        unique=True
+        unique=True,
+        validators=[RegexValidator(regex='^[A-Za-z]?'), ]
     )
     color = models.CharField(
         verbose_name='Цвет',
         max_length=7,
         default="#ffffff",
-        unique=True
+        unique=True,
+        validators=[RegexValidator(regex='^[#][0-9a-f]{6}?'), ]
     )
     slug = models.CharField(
         verbose_name='Идентификатор',
@@ -54,12 +57,14 @@ class Recipe(models.Model):
         max_length=100
     )
     is_favorited = models.BooleanField(
-        default=0
+        default=False
     )
     is_in_shopping_cart = models.BooleanField(
-        default=0
+        default=False
     )
-    cooking_time = models.PositiveSmallIntegerField()
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(limit_value=1),]
+    )
     pub_date = models.DateTimeField(
         auto_now_add=True
     )

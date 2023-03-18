@@ -24,5 +24,3 @@ def get_tokens_for_user(user):
         'token': str(refresh.access_token),
     }
     return tokens
-
-

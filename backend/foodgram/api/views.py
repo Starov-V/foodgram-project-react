@@ -1,6 +1,6 @@
 
 
-from rest_framework import status, viewsets, mixins
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action, APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -15,32 +15,22 @@ from .serializers import (IngredientRecipe, GetIngredientSerializer, FollowSeria
 from .permissions import IsAuthor
 
 
-
-
-
-
-
-
 class PasswordView(APIView):
         serializer_class = PasswordSerializer
         queryset = User.objects.all()
-        #permission_classes = (IsAuthenticated,)
+        permission_classes = (IsAuthenticated,)
 
 
 
         def post(self, request, *args, **kwargs):
             self.object = self.request.user
             serializer = PasswordSerializer(data=request.data)
-            print(request.data)
 
             if serializer.is_valid():
-                if not self.object.check_password(serializer.data.get("current_password")):
-                    return Response({"current_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
                 self.object.set_password(serializer.data.get("new_password"))
                 self.object.save()
                 return HttpResponse(status=200)
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UsersViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
@@ -110,6 +100,7 @@ class IsFavoriteViewSet(
     queryset = IsFavorite.objects.all()
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticated, )
+
     def perform_create(self, serializer):
             print(self.kwargs.get('recipe_id'))
             recipe = Recipe.objects.filter(id=self.kwargs.get('recipe_id')).get()
@@ -118,18 +109,13 @@ class IsFavoriteViewSet(
                 serializer.save(
                     recipe=recipe,
                     user=user)
-            
 
     @action(methods=['delete'], detail=True)
     def delete(self, request, recipe_id=None):
         user = request.user
         recipe = Recipe.objects.filter(id=recipe_id).get()
         obj = IsFavorite.objects.filter(recipe=recipe, user=user)
-        if obj:
-            print(obj[0])
-            print(obj.delete())
-        else:
-            return Response(data='No favorite')
+        obj.delete()
         return HttpResponse(status=204)
 
 class IsInCartViewSet(
@@ -150,7 +136,7 @@ class IsInCartViewSet(
             serializer.save(
                 recipe=recipe,
                 user=user)
-            
+  
     @action(methods=['delete'], detail=True)
     def delete(self, request, recipe_id=None):
         user = request.user
@@ -193,9 +179,6 @@ class IsInCartViewSet(
         )
         file['Content-Disposition'] = (f'attachment; filename={filename}')
         return file
-            
-
-            
 
 
 class FollowViewSet(
@@ -208,8 +191,6 @@ class FollowViewSet(
     serializer_class = FollowSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticated, )
-    
-
 
     def perform_create(self, serializer):
         """Функция для создания подписки."""
@@ -223,15 +204,10 @@ class FollowViewSet(
 
     @action(methods=['delete'], detail=True)
     def delete(self, request, user_id=None):
-        
         user = request.user
         following = User.objects.filter(id=user_id).get()
         obj = Follow.objects.filter(following=following, user=user)
-        if obj:
-            print(obj)
-            obj.delete()
-        else:
-            return Response(data='No follow')
+        obj.delete()
         return HttpResponse(status=204)
 
 

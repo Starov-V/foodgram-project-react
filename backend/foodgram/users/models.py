@@ -1,22 +1,30 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from .validators import validate_username
+from .validators import validate_username, validate_password
 
 
 class User(AbstractUser):
+    GUEST = 0
+    AUTORIZED = 1
+    ADMIN = 2
+
     ROLE_CHOICE = (
-        ('autorized', 'autorized'),
-        ('admin', 'admin')
+        (GUEST, 'guest'),
+        (AUTORIZED, 'autorized'),
+        (ADMIN, 'admin')
+
     )
     username = models.CharField(
         max_length=150,
         unique=True,
-        validators=[validate_username]
+        validators=[validate_username, ]
     )
     password = models.CharField(
         max_length=150,
         null=True,
-        default=None
+        default=None,
+        validators=[validate_password, ]
+
     )
     email = models.EmailField(
         unique=True,
@@ -31,8 +39,13 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=9,
         choices=ROLE_CHOICE,
-        default='user'
+        default=GUEST
     )
+
+    @property
+    def is_admin(self):
+        if self.role == 'admin':
+            return True
 
     class Meta:
         ordering = ('username',)
