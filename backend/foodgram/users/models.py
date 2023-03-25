@@ -39,7 +39,7 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=9,
         choices=ROLE_CHOICE,
-        default=GUEST
+        default=ROLE_CHOICE.GUEST
     )
 
     @property
