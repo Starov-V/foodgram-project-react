@@ -8,7 +8,7 @@ services:
       - ./.env 
 
   web: 
-    image: foodgram/starovv:lastest
+    image: starovv/foodgram:lastest
     restart: always 
     volumes: 
       - static_value:/app/static/ 
