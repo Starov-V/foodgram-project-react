@@ -21,7 +21,7 @@ SECRET_KEY = '@=__--+@+rk3*hw18!b#3yo!bwgryd9(j@lw&s@%dmgmdqxt@i'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['84.252.136.46', 'localhost']
+ALLOWED_HOSTS = ['158.160.2.148',]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -75,9 +75,8 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'NAME': os.getenv('DB_NAME', 'postgres'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT')
     }
@@ -109,10 +108,10 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media_files')
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
