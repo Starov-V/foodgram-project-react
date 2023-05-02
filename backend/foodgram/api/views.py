@@ -1,18 +1,19 @@
-
-
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action, APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.pagination import LimitOffsetPagination
+from .pagination import CustomPagination
 from django.db.models import Exists, OuterRef
 from users.models import User
 from django.http import HttpResponse
 from food.models import Tag, Ingredient, Recipe, IsFavorite, IsInCart, Follow, IngredientRecipe
 from .serializers import (IngredientRecipe, GetIngredientSerializer, FollowSerializer,
                           TagSerializer, CreateRecipeSerializer,  IsInCartSerializer, 
-                          IsFavoriteSerializer, UserSerializer, PasswordSerializer)
+                          IsFavoriteSerializer, UserSerializer, PasswordSerializer,
+                          FollowShowSerializer)
 from .permissions import IsAuthor
+from .filters import IngredientFilter, RecipeFilter
 
 
 class PasswordView(APIView):
@@ -33,9 +34,10 @@ class PasswordView(APIView):
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    pagination_class = LimitOffsetPagination
+    pagination_class = CustomPagination
     queryset = User.objects.all()
     permission_classes = (AllowAny, )
+    filter_backends = (DjangoFilterBackend,)
 
 
     def list(self, request):
@@ -47,19 +49,24 @@ class UsersViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = CustomPagination
+    filter_backends = (DjangoFilterBackend,)
 
 
 class GetIngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = GetIngredientSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = None
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = CreateRecipeSerializer
     queryset = Recipe.objects.all()
-    pagination_class = LimitOffsetPagination
+    pagination_class = CustomPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def get_permissions(self):
         if (self.action == 'update'):
@@ -98,7 +105,7 @@ class IsFavoriteViewSet(
 ):
     serializer_class = IsFavoriteSerializer
     queryset = IsFavorite.objects.all()
-    pagination_class = LimitOffsetPagination
+    pagination_class = None
     permission_classes = (IsAuthenticated, )
 
     def perform_create(self, serializer):
@@ -124,7 +131,7 @@ class IsInCartViewSet(
 ):
     serializer_class = IsInCartSerializer
     queryset = IsInCart.objects.all()
-    pagination_class = LimitOffsetPagination
+    pagination_class = None
     permission_classes = (IsAuthenticated, )
 
     def perform_create(self, serializer):
@@ -181,14 +188,12 @@ class FollowViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin
 ):
-    """ViewSet для подписок."""
 
+    queryset = Follow.objects.all()
     serializer_class = FollowSerializer
-    pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticated, )
 
     def perform_create(self, serializer):
-        """Функция для создания подписки."""
         if serializer.is_valid():
             
             serializer.save(
@@ -205,7 +210,16 @@ class FollowViewSet(
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-    def get_queryset(self):
-        """Функция для отображения подписок."""
-        queryset = self.request.user.follower.all()
-        return queryset
+class ShowFollowViewSet(viewsets.ModelViewSet):
+    serializer_class = FollowShowSerializer
+    permission_classes = (IsAuthenticated, )
+    pagination_class = CustomPagination
+    queryset = User.objects.all()
+
+    @action(methods=['get'], detail=False)
+    def subscriptions(self, request):
+        queryset = User.objects.filter(following__user=request.user)
+        page = self.paginate_queryset(queryset)
+        serializer = FollowShowSerializer(page, many=True,
+                                             context={'request': request})
+        return self.get_paginated_response(serializer.data)

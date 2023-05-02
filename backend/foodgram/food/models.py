@@ -41,6 +41,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='recipes'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -68,6 +69,8 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField(
         auto_now_add=True
     )
+    class Meta:
+        ordering = ['-pub_date']
 
 class TagRecipe(models.Model):
     tag = models.ForeignKey(
@@ -96,12 +99,14 @@ class IsFavorite(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        null=True
+        null=True,
+        related_name='favorites'
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        null=True
+        null=True,
+        related_name='favorites'
     )
     class Meta:
         constraints = [
@@ -116,12 +121,14 @@ class IsInCart(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        null=True
+        null=True,
+        related_name='shopping_cart'
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        null=True
+        null=True,
+        related_name='shopping_cart'
     )
     class Meta:
         constraints = [
