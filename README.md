@@ -111,6 +111,3 @@ DB_PORT=<port to connect to the database>
 ```
 
 ```delete``` /api/recipes/{recipes_id}/ - delete recipe
-# Some words from author
-It was so hard
-http://158.160.2.148
